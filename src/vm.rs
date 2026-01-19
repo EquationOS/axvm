@@ -417,7 +417,7 @@ impl<H: AxVMHal, U: AxVCpuHal> AxVM<H, U> {
     }
 }
 
-use x86_vcpu::LinuxContext;
+use x86_vcpu::{LinuxContext, VCpuSetupContext};
 
 impl<H: AxVMHal, U: AxVCpuHal> AxVM<H, U> {
     pub fn new_host(config: AxVMConfig, host_ctxs: &[LinuxContext]) -> AxResult<AxVMRef<H, U>> {
@@ -479,7 +479,7 @@ impl<H: AxVMHal, U: AxVCpuHal> AxVM<H, U> {
                 // Setup VCpus.
                 vcpu.setup_from_context(
                     address_space.page_table_root(),
-                    host_ctxs[vcpu_id].clone(),
+                    VCpuSetupContext::HostContext(host_ctxs[vcpu_id].clone()),
                 )?;
 
                 vcpu_list.push(Arc::new(vcpu));
