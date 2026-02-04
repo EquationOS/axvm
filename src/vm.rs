@@ -417,10 +417,10 @@ impl<H: AxVMHal, U: AxVCpuHal> AxVM<H, U> {
     }
 }
 
-use x86_vcpu::{LinuxContext, VCpuSetupContext};
+use x86_vcpu::{GuestContext, VCpuSetupContext};
 
 impl<H: AxVMHal, U: AxVCpuHal> AxVM<H, U> {
-    pub fn new_host(config: AxVMConfig, host_ctxs: &[LinuxContext]) -> AxResult<AxVMRef<H, U>> {
+    pub fn new_host(config: AxVMConfig, host_ctxs: &[GuestContext]) -> AxResult<AxVMRef<H, U>> {
         let result = Arc::new({
             // Set up Memory regions.
             let mut address_space =
