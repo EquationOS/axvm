@@ -6,7 +6,7 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, Ordering};
 
 use axerrno::{AxResult, ax_err, ax_err_type};
-use memory_addr::{MemoryAddr, align_up, is_aligned};
+use memory_addr::{align_up, is_aligned};
 use page_table_multiarch::PageSize;
 use spin::Mutex;
 
