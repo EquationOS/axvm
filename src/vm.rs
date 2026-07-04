@@ -525,6 +525,54 @@ impl<H: AxVMHal, U: AxVCpuHal> AxVM<H, U> {
         self.inner_mut.address_space.lock().unmap(gpa, size)
     }
 
+    pub fn read_from_guest(&self, gpa: GuestPhysAddr, buffer: &mut [u8]) -> AxResult {
+        let addr_space = self.inner_mut.address_space.lock();
+        let buffers = addr_space
+            .translated_byte_buffer(gpa, buffer.len())
+            .ok_or_else(|| {
+                ax_err_type!(
+                    InvalidInput,
+                    format_args!("Failed to translate guest physical address at {:?}", gpa)
+                )
+            })?;
+
+        let mut offset = 0;
+        for chunk in buffers {
+            let copy_size = core::cmp::min(chunk.len(), buffer.len() - offset);
+            buffer[offset..offset + copy_size].copy_from_slice(&chunk[..copy_size]);
+            offset += copy_size;
+            if offset >= buffer.len() {
+                break;
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn write_to_guest(&self, gpa: GuestPhysAddr, data: &[u8]) -> AxResult {
+        let addr_space = self.inner_mut.address_space.lock();
+        let buffers = addr_space
+            .translated_byte_buffer(gpa, data.len())
+            .ok_or_else(|| {
+                ax_err_type!(
+                    InvalidInput,
+                    format_args!("Failed to translate guest physical address at {:?}", gpa)
+                )
+            })?;
+
+        let mut offset = 0;
+        for chunk in buffers {
+            let copy_size = core::cmp::min(chunk.len(), data.len() - offset);
+            chunk[..copy_size].copy_from_slice(&data[offset..offset + copy_size]);
+            offset += copy_size;
+            if offset >= data.len() {
+                break;
+            }
+        }
+
+        Ok(())
+    }
+
     /// Reads an object of type `T` from the guest physical address.
     pub fn read_from_guest_of<T>(&self, gpa_ptr: GuestPhysAddr) -> AxResult<T> {
         let size = core::mem::size_of::<T>();
